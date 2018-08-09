@@ -57,6 +57,8 @@ type Context struct {
 
 	// Accepted defines a list of manually accepted formats for content negotiation.
 	Accepted []string
+
+	query url.Values
 }
 
 /************************************/
@@ -351,10 +353,18 @@ func (c *Context) QueryArray(key string) []string {
 	return values
 }
 
+// cache the Request.URL.Query()
+func (c *Context) getQuery() url.Values {
+	if c.query == nil {
+		c.query = c.Request.URL.Query()
+	}
+	return c.query
+}
+
 // GetQueryArray returns a slice of strings for a given query key, plus
 // a boolean value whether at least one value exists for the given key.
 func (c *Context) GetQueryArray(key string) ([]string, bool) {
-	if values, ok := c.Request.URL.Query()[key]; ok && len(values) > 0 {
+	if values, ok := c.getQuery()[key]; ok && len(values) > 0 {
 		return values, true
 	}
 	return []string{}, false
@@ -369,7 +379,7 @@ func (c *Context) QueryMap(key string) map[string]string {
 // GetQueryMap returns a map for a given query key, plus a boolean value
 // whether at least one value exists for the given key.
 func (c *Context) GetQueryMap(key string) (map[string]string, bool) {
-	return c.get(c.Request.URL.Query(), key)
+	return c.get(c.getQuery(), key)
 }
 
 // PostForm returns the specified key from a POST urlencoded form or multipart form
